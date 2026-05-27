@@ -17,7 +17,7 @@ export interface User {
 }
 
 // ─── COURSE ───────────────────────────────────────────
-export type CourseSubject = "BIO" | "GEO" | "ALL";
+export type CourseSubject = "MECH" | "ELEC" | "WAVES" | "ALL";
 export type CourseType    = "FINAL_FULL" | "LECTURE" | "SINGLE" | "WORKSHOP" | "CAMP" | "EXAM";
 export type SubStatus     = "ACTIVE" | "EXPIRED" | "CANCELLED";
 
