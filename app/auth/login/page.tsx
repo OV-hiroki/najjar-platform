@@ -1,14 +1,12 @@
 "use client";
-import { useState, useEffect }  from "react";
+import { useState }  from "react";
+import { Suspense }  from "react";
 import { signIn }               from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme }             from "next-themes";
-import { isValidPhone, sanitizeCallbackUrl } from "@/lib/utils";
+import { isValidPhone } from "@/lib/utils";
 
-// ── Re-export sanitizeCallbackUrl in utils since we need it client-side ──
-// (It's a pure string function, safe in browser)
-
-export default function LoginPage() {
+function LoginForm() {
   const router        = useRouter();
   const searchParams  = useSearchParams();
   const { theme, setTheme } = useTheme();
@@ -35,7 +33,6 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      // Pass IP via header trick (Next.js handles it)
       const res = await signIn("credentials", {
         phone, password, redirect: false,
       });
@@ -139,5 +136,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-navy flex items-center justify-center">
+        <div className="text-white/40 text-sm">جاري التحميل...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
