@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role          { STUDENT ADMIN TEACHER }
+enum CourseSubject { MECH ELEC WAVES ALL }
+enum CourseType    { FINAL_FULL LECTURE SINGLE WORKSHOP CAMP EXAM }
+enum TxType        { FAWRY CENTER_CODE REFUND PURCHASE }
+enum TxStatus      { PENDING CONFIRMED FAILED }
+enum SubStatus     { ACTIVE EXPIRED CANCELLED }
+enum CodeStatus    { UNUSED USED EXPIRED REVOKED }
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String   @unique
+  email       String?  @unique
+  password    String
+  avatar      String?
+  role        Role     @default(STUDENT)
+  balance     Float    @default(0)
+  points      Int      @default(0)
+  centerId    String?
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions   CourseSubscription[]
+  invoices        Invoice[]
+  transactions    WalletTransaction[]
+  examResults     ExamResult[]
+  homeworkResults HomeworkResult[]
+  notifications   Notification[]
+  savedVideos     SavedVideo[]
+  loginHistory    LoginHistory[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String        @id @default(cuid())
+  title       String
+  description String?       @db.Text
+  subject     CourseSubject @default(ALL)
+  type        CourseType    @default(LECTURE)
+  price       Float
+  oldPrice    Float?
+  grade       String        @default("٣ ث")
+  thumbnail   String?
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean       @default(true)
+  isPublished Boolean       @default(false)
+  totalVideos Int           @default(0)
+  order       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  subscriptions CourseSubscription[]
+  videos        Video[]
+  exams         Exam[]
+  homeworks     Homework[]
+  invoiceItems  InvoiceItem[]
+
+  @@map("courses")
+}
+
+model CourseSubscription {
+  id             String    @id @default(cuid())
+  userId         String
+  courseId       String
+  status         SubStatus @default(ACTIVE)
+  progress       Float     @default(0)
+  videosWatched  Int       @default(0)
+  examsCompleted Int       @default(0)
+  subscribedAt   DateTime  @default(now())
+  expiresAt      DateTime?
+
+  user   User   @relation(fields: [userId],   references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("course_subscriptions")
+}
+
+model Video {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  url       String
+  duration  Int      @default(0)
+  order     Int      @default(0)
+  isFree    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  course  Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  savedBy SavedVideo[]
+
+  @@map("videos")
+}
+
+model SavedVideo {
+  id      String   @id @default(cuid())
+  userId  String
+  videoId String
+  savedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId],  references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@map("saved_videos")
+}
+
+// SECURITY FIX: Dedicated CenterCode table — amount set by admin ONLY
+model CenterCode {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  amount      Float
+  status      CodeStatus @default(UNUSED)
+  usedBy      String?
+  usedAt      DateTime?
+  expiresAt   DateTime?
+  batchId     String?
+  createdAt   DateTime   @default(now())
+  createdById String?
+
+  @@index([code])
+  @@index([status])
+  @@map("center_codes")
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  questions Json
+  duration  Int      @default(30)
+  passMark  Float    @default(50)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  course  Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  results ExamResult[]
+
+  @@map("exams")
+}
+
+model ExamResult {
+  id         String   @id @default(cuid())
+  userId     String
+  examId     String
+  score      Float
+  total      Float
+  percentage Float
+  answers    Json
+  duration   Int?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_results")
+}
+
+model Homework {
+  id        String    @id @default(cuid())
+  courseId  String
+  title     String
+  questions Json
+  dueDate   DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  course  Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  results HomeworkResult[]
+
+  @@map("homeworks")
+}
+
+model HomeworkResult {
+  id         String   @id @default(cuid())
+  userId     String
+  homeworkId String
+  score      Float
+  total      Float
+  answers    Json
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId],     references: [id], onDelete: Cascade)
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  @@map("homework_results")
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  total     Float
+  discount  Float    @default(0)
+  coupon    String?
+  createdAt DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String @id @default(cuid())
+  invoiceId String
+  courseId  String
+  price     Float
+  quantity  Int    @default(1)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId],  references: [id])
+
+  @@map("invoice_items")
+}
+
+model WalletTransaction {
+  id          String    @id @default(cuid())
+  userId      String
+  amount      Float
+  type        TxType
+  status      TxStatus  @default(PENDING)
+  reference   String?
+  description String?
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reference])
+  @@map("wallet_transactions")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("info")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  ip        String?
+  device    String?
+  country   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("login_history")
+}

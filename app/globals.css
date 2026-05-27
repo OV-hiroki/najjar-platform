@@ -1,0 +1,97 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-cairo: "Cairo", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { direction: rtl; }
+  body {
+    font-family: var(--font-cairo);
+    @apply bg-gray-50 text-gray-900 dark:bg-navy dark:text-white;
+  }
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-primary/40 rounded-full; }
+}
+
+@layer components {
+  /* ── Buttons ────────────────────────────────── */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark active:scale-95
+           text-white font-medium rounded-xl px-5 py-2.5
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-outline {
+    @apply border border-primary text-primary hover:bg-primary/10
+           rounded-xl px-5 py-2.5 font-medium transition-all duration-150;
+  }
+  .btn-ghost {
+    @apply text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-primary/5
+           rounded-xl px-4 py-2 transition-all duration-150;
+  }
+  .btn-teal {
+    @apply bg-teal hover:opacity-90 active:scale-95
+           text-white font-medium rounded-xl px-5 py-2.5
+           transition-all duration-150;
+  }
+
+  /* ── Cards ──────────────────────────────────── */
+  .card {
+    @apply bg-white dark:bg-card rounded-2xl border border-gray-200 dark:border-white/8 p-4;
+  }
+  .card-hover {
+    @apply card transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/30;
+  }
+
+  /* ── Inputs ─────────────────────────────────── */
+  .input {
+    @apply w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10
+           rounded-xl px-4 py-2.5 text-sm text-right
+           focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30
+           placeholder:text-gray-400 dark:placeholder:text-white/30
+           transition-all duration-150;
+  }
+
+  /* ── Badge ──────────────────────────────────── */
+  .badge-pink  { @apply bg-primary/10 text-primary text-xs px-2.5 py-0.5 rounded-full; }
+  .badge-teal  { @apply bg-teal/10 text-teal text-xs px-2.5 py-0.5 rounded-full; }
+  .badge-gold  { @apply bg-gold/15 text-yellow-700 dark:text-gold text-xs px-2.5 py-0.5 rounded-full; }
+  .badge-gray  { @apply bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/40 text-xs px-2.5 py-0.5 rounded-full; }
+
+  /* ── Section title ──────────────────────────── */
+  .section-title {
+    @apply text-base font-semibold mb-3 flex items-center gap-2;
+  }
+  .section-title::before {
+    content: "";
+    @apply block w-1 h-4 bg-primary rounded-full;
+  }
+
+  /* ── Stat card ──────────────────────────────── */
+  .stat-card {
+    @apply bg-primary rounded-2xl p-4 text-white flex items-center justify-between;
+  }
+
+  /* ── Page container ─────────────────────────── */
+  .page-wrap {
+    @apply max-w-5xl mx-auto px-4 py-6;
+  }
+}
+
+/* ── Dark mode overrides ───────────────────────────── */
+.dark .card          { border-color: rgba(255,255,255,.07); }
+.dark .input         { color: rgba(255,255,255,.88); }
+
+/* ── Animations ────────────────────────────────────── */
+.animate-fade-up  { animation: fadeUp  .25s ease both; }
+.animate-fade-in  { animation: fadeIn  .2s  ease both; }
+.animate-slide-in { animation: slideIn .3s  ease both; }
+
+@keyframes fadeUp   { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes slideIn  { from { transform:translateX(100%); } to { transform:translateX(0); } }
