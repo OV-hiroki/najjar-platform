@@ -1,5 +1,6 @@
-import { auth }          from "@/lib/auth";
 import { NextResponse }  from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken }      from "next-auth/jwt";
 import { sanitizeCallbackUrl } from "@/lib/security";
 
 const PUBLIC_ROUTES   = ["/auth/login", "/auth/register"];
@@ -7,9 +8,15 @@ const PLATFORM_ROUTES = ["/platform"];
 const ADMIN_ROUTES    = ["/admin"];
 const API_PUBLIC      = ["/api/auth"];
 
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session      = req.auth;
+  
+  // Use edge-compatible getToken
+  const token = await getToken({ 
+    req, 
+    secret: process.env.AUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production"
+  });
 
   // ── Allow public API routes ────────────────────────
   if (API_PUBLIC.some((r) => pathname.startsWith(r))) {
@@ -17,12 +24,12 @@ export default auth((req) => {
   }
 
   // ── Logged-in → away from auth pages ──────────────
-  if (session && PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
+  if (token && PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     return NextResponse.redirect(new URL("/platform/dashboard", req.url));
   }
 
   // ── Not logged-in → protect platform ──────────────
-  if (!session && PLATFORM_ROUTES.some((r) => pathname.startsWith(r))) {
+  if (!token && PLATFORM_ROUTES.some((r) => pathname.startsWith(r))) {
     const loginUrl = new URL("/auth/login", req.url);
     // SECURITY FIX: sanitize callbackUrl — prevent open redirect
     const rawCallback = req.nextUrl.searchParams.get("callbackUrl") ?? pathname;
@@ -32,7 +39,7 @@ export default auth((req) => {
 
   // ── Admin only ─────────────────────────────────────
   if (ADMIN_ROUTES.some((r) => pathname.startsWith(r))) {
-    if (!session || session.user.role !== "ADMIN") {
+    if (!token || token.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/platform/dashboard", req.url));
     }
   }
@@ -41,13 +48,12 @@ export default auth((req) => {
   const response = NextResponse.next();
 
   // These are in addition to next.config.js headers
-  // to ensure they're always applied at middleware level too
   response.headers.set("X-Frame-Options",        "DENY");
   response.headers.set("X-Content-Type-Options",  "nosniff");
   response.headers.set("X-XSS-Protection",        "1; mode=block");
 
   return response;
-});
+}
 
 export const config = {
   matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)"],
