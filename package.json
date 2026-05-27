@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:vanilla": "npx serve vanilla -l 5500",
     "build": "prisma db push --accept-data-loss && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
