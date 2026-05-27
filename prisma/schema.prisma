@@ -7,13 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role          { STUDENT ADMIN TEACHER }
-enum CourseSubject { MECH ELEC WAVES ALL }
-enum CourseType    { FINAL_FULL LECTURE SINGLE WORKSHOP CAMP EXAM }
-enum TxType        { FAWRY CENTER_CODE REFUND PURCHASE }
-enum TxStatus      { PENDING CONFIRMED FAILED }
-enum SubStatus     { ACTIVE EXPIRED CANCELLED }
-enum CodeStatus    { UNUSED USED EXPIRED REVOKED }
+enum Role {
+  STUDENT
+  ADMIN
+  TEACHER
+}
+
+enum CourseSubject {
+  MECH
+  ELEC
+  WAVES
+  ALL
+}
+
+enum CourseType {
+  FINAL_FULL
+  LECTURE
+  SINGLE
+  WORKSHOP
+  CAMP
+  EXAM
+}
+
+enum TxType {
+  FAWRY
+  CENTER_CODE
+  REFUND
+  PURCHASE
+}
+
+enum TxStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum SubStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum CodeStatus {
+  UNUSED
+  USED
+  EXPIRED
+  REVOKED
+}
 
 model User {
   id          String   @id @default(cuid())
