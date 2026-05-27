@@ -1,7 +1,20 @@
 import { NextResponse }  from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken }      from "next-auth/jwt";
-import { sanitizeCallbackUrl } from "@/lib/security";
+
+/** Validate callbackUrl to prevent open redirect */
+function sanitizeCallbackUrl(url: string | null, fallback = "/platform/dashboard"): string {
+  if (!url) return fallback;
+  try {
+    if (!url.startsWith("/") || url.startsWith("//")) return fallback;
+    if (/^[a-z]+:/i.test(url)) return fallback;
+    const decoded = decodeURIComponent(url);
+    if (decoded.includes("://") || decoded.startsWith("//")) return fallback;
+    return url;
+  } catch {
+    return fallback;
+  }
+}
 
 const PUBLIC_ROUTES   = ["/auth/login", "/auth/register"];
 const PLATFORM_ROUTES = ["/platform"];
