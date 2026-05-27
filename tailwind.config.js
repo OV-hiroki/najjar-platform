@@ -24,19 +24,8 @@ module.exports = {
         "2xl": "16px",
         "3xl": "20px",
       },
-      animation: {
-        "fade-up":  "fadeUp 0.25s ease",
-        "fade-in":  "fadeIn 0.2s ease",
-        "slide-in": "slideIn 0.3s ease",
-        "pulse-pk": "pulsePk 2s infinite",
-      },
-      keyframes: {
-        fadeUp:   { from: { opacity: "0", transform: "translateY(8px)" }, to: { opacity: "1", transform: "translateY(0)" } },
-        fadeIn:   { from: { opacity: "0" }, to: { opacity: "1" } },
-        slideIn:  { from: { transform: "translateX(100%)" }, to: { transform: "translateX(0)" } },
-        pulsePk:  { "0%,100%": { opacity: "1" }, "50%": { opacity: ".5" } },
-      },
+
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 };
